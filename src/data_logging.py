@@ -4,7 +4,6 @@ from influxdb import InfluxDBClient
 
 
 class DataLogging:
-    connection_validated = False
     _local = True
     _hostname = ''
     _port = 0
@@ -21,8 +20,6 @@ class DataLogging:
             print(f'Trying to create a new Logger with properties: \n  host: {self._hostname}\n  port: {self._port}')
             _local = False
             self.validate()
-        else:
-            self.connection_validated = True
 
     def _init_influx_client(self):
         self._influx = InfluxDBClient(host=self._hostname, port=self._port, timeout=3)
@@ -34,7 +31,18 @@ class DataLogging:
             response = self._influx.ping()
             if response:
                 print('Connection Successful')
-                self.connection_validated = True
+            else:
+                # TODO implement what to do if the connection was not successful.
+                pass
             self._influx.close()
         except Exception as err:
             print(str(err), file=sys.stderr)
+
+
+def check_repost_unsent_values(relevant=False):
+    if relevant:
+        print('Check for any locally stored values which weren\'t posted last time.')
+        # TODO implement the rest of this branch
+    else:
+        print('> Skipping the check for local values because we are not persisting them anyway.')
+        # TODO implement the rest of this branch
