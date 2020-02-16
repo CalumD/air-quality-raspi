@@ -1,9 +1,14 @@
+#!/usr/bin/env python3
 import argparse
+import sched
+import signal
 
 from data_logging import DataLogging
+from sensor import Sensor
 
 verbose = False
-logger = DataLogging
+logger = DataLogging()
+sensor = Sensor
 
 
 def get_commandline_args():
@@ -79,10 +84,28 @@ def validate_commandline_args(parsed_arguments):
     return True
 
 
-def execute():
-    print('Start doing the actual logic.')
-    # TODO Call out to the sensor code to get set up and schedule polling the data from the sensor.
-    pass
+def execute(freq):
+    # Calculate the work delay based on the polling frequency
+    one_hour = 3600
+    polling_frequency = one_hour // freq  # Floor division to get the nearest int.
+    v_print(f'Calculated Polling to run every {polling_frequency} seconds')
+
+    # Do a 'Run-Once'
+    work()
+
+    # Begin perpetual execution.
+    scheduler = sched.scheduler()
+    while True:
+        scheduler.enter(delay=polling_frequency, priority=1, action=work)
+        scheduler.run()
+
+
+def work():
+    # Get data from sensor
+    sensor_output = sensor.read()
+
+    # Send data to logger
+    logger.log_sensor_output(data=sensor_output)
 
 
 def v_print(content):
@@ -90,6 +113,14 @@ def v_print(content):
         print(content)
 
 
+def clean_shutdown(sig, frame):
+    # TODO implement some clean shutdown logic if we are using a remote connection or are writing to file.
+    print('You pressed Ctrl+C!')
+    exit(0)
+
+
+signal.signal(signal.SIGINT, clean_shutdown)
+signal.signal(signal.SIGTERM, clean_shutdown)
 if __name__ == '__main__':
     print('Checking command line arguments...')
     parsed_args = get_commandline_args()
@@ -100,5 +131,9 @@ if __name__ == '__main__':
         exit(1)
     v_print('> Validated the command line arguments are okay.\n')
 
+    v_print('Setup Sensor...')
+    sensor = Sensor()
+    v_print('> Sensor Initialised.\n')
+
     print('-- Operational --')
-    execute()
+    execute(parsed_args.freq)

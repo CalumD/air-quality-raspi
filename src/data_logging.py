@@ -1,4 +1,5 @@
 import sys
+import time
 
 from influxdb import InfluxDBClient
 
@@ -14,6 +15,7 @@ class DataLogging:
             hostname = hostname[7:]
         elif hostname.startswith('https://'):
             hostname = hostname[8:]
+        self._local = localhost
         self._hostname = hostname
         self._port = port
         if not localhost:
@@ -37,6 +39,11 @@ class DataLogging:
             self._influx.close()
         except Exception as err:
             print(str(err), file=sys.stderr)
+
+    def log_sensor_output(self, data):
+        # TODO implement the logging
+        print(f'Data at {time.strftime("%H:%M:%S", time.localtime())}: {data}')
+        pass
 
 
 def check_repost_unsent_values(relevant=False):
