@@ -48,7 +48,8 @@ def get_commandline_args():
     # Add an argument to set the frequency of polling
     argument_parser.add_argument("-f", "--freq",
                                  type=int,
-                                 help="How many times PER HOUR, new values will be polled from the sensor.")
+                                 help="How many times PER HOUR, new values will be polled from the sensor.",
+                                 default=60)  # Once per minute
 
     parsed_arguments = argument_parser.parse_args()
     global verbose
@@ -61,6 +62,9 @@ def validate_commandline_args(parsed_arguments):
     if not (1024 < parsed_arguments.port <= 65535):
         print('Command line port number must be between 1025 and 65535.')
         return False
+    # Validate frequency is sensible
+    if not (1 <= parsed_arguments.freq <= 3600):
+        print('Polling Frequency must be at least 1 (1/Hour), and at most 3600 (1/Second)')
     # Validate the database connection
     global logger
     if parsed_arguments.save:
@@ -73,12 +77,16 @@ def validate_commandline_args(parsed_arguments):
 def check_repost_unsent_values(relevant=False):
     if relevant:
         print('Check for any locally stored values which weren\'t posted last time.')
+        # TODO implement the rest of this branch
     else:
         print('> Skipping the check for local values because we are not persisting them anyway.')
+        # Also remove any previous record file as it will be outdated by the time it may be wanted again.
+        # TODO implement the rest of this branch
 
 
 def execute():
     print('Start doing the actual logic.')
+    # TODO Call out to the sensor code to get set up and schedule polling the data from the sensor.
     pass
 
 
