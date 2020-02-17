@@ -4,11 +4,20 @@ This is intended to be used with a Raspberry Pi and a Bosche BME680 sensor.
 
 
 ### Installation
+First of all, on your Pi, you will need to make sure that the I2C bus is enabled, in order to let us pass data between the code and the sensor.
+You can enable/disable your I2C by using: 
+```(bash)
+$ sudo raspi-config
+```
 Install the required dependencies for this project by cd'ing into the project file, then running:
 ```(bash)
 $ pip3 install -r requirements.txt
 ```
-
+You should also probably run the following in order to correctly install the SMBUS packages required to capture data from the pi's GPIO for use in python.
+(Note that this step is specifically to be run on the destination machine, not a dev machine - unless that's a pi too.)
+```(bash)
+$ curl https://get.pimoroni.com/i2c | bash
+```
 
 ### Running
 There are two methods for running this project. Temporary mode, where the application will only run for as long as the command is running in terminal; and persistent mode, where it will try to resiliently connect to a given server to carry out the logging of the outputs.
