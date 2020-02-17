@@ -1,5 +1,4 @@
 import sys
-from pprint import pprint
 
 from influxdb import InfluxDBClient
 
@@ -41,9 +40,18 @@ class DataLogging:
             print(str(err), file=sys.stderr)
 
     def log_sensor_output(self, data):
+        timestamp = time.time()
+
+        def __init__(self, temperature=0.0, humidity=0.0, pressure=0.0, gas=0.0, iaq_index=0.0):
+            self.temperature = temperature
+            self.humidity = humidity
+            self.pressure = pressure
+            self.gas = gas
+            self.iaq_index = iaq_index
+
         # TODO implement the logging
-        pprint(data)
-        pass
+        print(f'TS: {data.timestamp},  Temp: {data.temperature},  Humidity: {data.humidity},  Pres: {data.pressure},  '
+              f'gas: {data.gas},  IAQ: {data.iaq_index}.')
 
 
 def check_repost_unsent_values(relevant=False):
