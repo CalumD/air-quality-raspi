@@ -1,5 +1,5 @@
 import sys
-import time
+from pprint import pprint
 
 from influxdb import InfluxDBClient
 
@@ -42,7 +42,7 @@ class DataLogging:
 
     def log_sensor_output(self, data):
         # TODO implement the logging
-        print(f'Data at {time.strftime("%H:%M:%S", time.localtime())}: {data}')
+        pprint(data)
         pass
 
 

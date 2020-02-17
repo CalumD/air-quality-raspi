@@ -73,4 +73,4 @@ class Sensor:
         else:
             print('Sensor not ready for more readings yet!', file=sys.stderr)
 
-        return DataCapture()
+        return self._data
