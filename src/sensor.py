@@ -98,10 +98,10 @@ class Sensor:
 
     def first_time_setup(self, config):
         # Define burn-in variables
-        percent_complete_increment = _FIRST_TIME_RUN_TIME_MINS / 10
+        total_burn_in_time = 60 * _FIRST_TIME_RUN_TIME_MINS  # == 1MinuteInSeconds * DefaultBurnInTime
+        percent_complete_increment = total_burn_in_time / 10
         next_milestone_marker = 0
         percent_complete = 0
-        total_burn_in_time = 60 * _FIRST_TIME_RUN_TIME_MINS  # == 1MinuteInSeconds * DefaultBurnInTime
         burn_in_data = []
 
         # Let the user know what is about to happen
