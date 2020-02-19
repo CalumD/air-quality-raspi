@@ -119,8 +119,8 @@ class Sensor:
             # Decide if it's time for an update on progress.
             if current_time - start_time >= next_milestone_marker:
                 print(f'Collecting Data... {percent_complete}% complete')
-                percent_complete = next_milestone_marker
                 next_milestone_marker += percent_complete_increment
+                percent_complete = next_milestone_marker
 
             # Capture more sensor data.
             if self.sensor.get_sensor_data() and self.sensor.data.heat_stable:
