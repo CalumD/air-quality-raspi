@@ -110,7 +110,7 @@ class Sensor:
         # Let the user know what is about to happen
         print(f'Collecting sensor first-time-run \'burn-in\' data for {_FIRST_TIME_RUN_TIME_MINS} minutes.')
         print(f'Approximate completion time: '
-              f'{datetime.fromtimestamp(time.time() + total_burn_in_time).strftime("%d/%m/%Y %T.%f")[:-3]}')
+              f'{datetime.fromtimestamp(time.time() + total_burn_in_time).strftime("%d/%m/%Y %H:%M:00")[:-3]}')
 
         # Capture Data for pre-determined minutes
         start_time = time.time()
