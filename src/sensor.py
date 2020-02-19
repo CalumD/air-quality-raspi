@@ -83,9 +83,11 @@ class Sensor:
         if os.path.exists(_CONFIG_FILE_NAME):
             if not os.path.isfile(_CONFIG_FILE_NAME):
                 _early_quit(f'Destination for file, {_CONFIG_FILE_NAME} is marked as a directory, quitting.')
-        if os.access(_CONFIG_FILE_NAME, os.W_OK):
+        try:
+            with open(_CONFIG_FILE_NAME, 'w') as test_file:
+                test_file.write('')
             return True
-        else:
+        except Exception as err:
             _early_quit(f'No write permissions allowed to config file destination, {_CONFIG_FILE_NAME}, quitting.')
 
     @staticmethod
