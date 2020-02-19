@@ -86,6 +86,7 @@ class Sensor:
         try:
             with open(_CONFIG_FILE_NAME, 'w') as test_file:
                 test_file.write('')
+            os.remove(_CONFIG_FILE_NAME)
             return True
         except Exception as err:
             _early_quit(f'No write permissions allowed to config file destination, {_CONFIG_FILE_NAME}, quitting.')
