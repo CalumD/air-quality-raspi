@@ -92,8 +92,11 @@ class Sensor:
 
     @staticmethod
     def get_config_data():
-        with open(_CONFIG_FILE_NAME, 'r') as json_file:
-            config_data = json.load(json_file)
+        try:
+            with open(_CONFIG_FILE_NAME, 'r') as json_file:
+                config_data = json.load(json_file)
+        except Exception as err:
+            _early_quit(f'Something went wrong trying to get config from {_CONFIG_FILE_NAME}, {str(err)}')
         return config_data
 
     def first_time_setup(self, config):
