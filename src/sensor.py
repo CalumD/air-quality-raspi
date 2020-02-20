@@ -15,7 +15,7 @@ _DEFAULT_SENSOR_CONFIG = {
     "temperature_oversample": bme680.OS_8X,
     "temperature_offset": 0.000,
     "cpu": {
-        "rounding_factor": 1.0,
+        "rounding_factor": 0.7,
         "smoothing_strength": 10
     },
     "filter_size": bme680.FILTER_SIZE_7,
@@ -215,13 +215,14 @@ class Sensor:
         # Get the current cpu temperature and record it
         current_cpu_temp = psutil.sensors_temperatures()['cpu-thermal'][0][1]
         self.__cpu['smoothing'].append(current_cpu_temp)
+        smoothing = self.__cpu['smoothing']
 
         # Roll the list on to the most recent values.
-        if len(current_cpu_temp) > self.__cpu['smoothing_strength']:
-            self.__cpu['smoothing'] = self.__cpu['smoothing'][1:]
+        if len(smoothing) > self.__cpu['smoothing_strength']:
+            self.__cpu['smoothing'] = smoothing[1:]
 
         # Average the list of CPU temps
-        recent_avg = sum(self.__cpu['smoothing']) / float(len(self.__cpu['smoothing']))
+        recent_avg = sum(smoothing) / float(len(smoothing))
         snapshot = self.sensor.data.temperature
 
         # Offset the recorded value based on nearby CPU temps.
