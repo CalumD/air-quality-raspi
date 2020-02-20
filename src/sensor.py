@@ -47,8 +47,8 @@ class DataCapture:
         self.timestamp = time.time()
 
     def __str__(self):
-        return '{0}: ' 'Temp {1}°C, Humidity {2:.2f} %RH, Pressure {3:.2f} hPa, ' \
-               'Gas Resistance {4} Ohms, Quality Index: {5:.2f}'.format(
+        return '{0}: ' 'Temp {1:.2f}°C, Humidity {2:.2f} %RH, Pressure {3:.2f} hPa, ' \
+               'Gas Resistance {4:.2f} Ohms, Quality Index: {5:.2f}'.format(
             datetime.fromtimestamp(self.timestamp).strftime('%d/%m/%Y %T.%f')[:-3],
             self.temperature, self.humidity, self.pressure, self.gas, self.iaq_index)
 
