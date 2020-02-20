@@ -41,8 +41,7 @@ class DataLogging:
 
     def log_sensor_output(self, data):
         # TODO implement the logging
-        print(f'TS: {data.timestamp},  Temp: {data.temperature},  Humidity: {data.humidity},  Pres: {data.pressure},  '
-              f'gas: {data.gas},  IAQ: {data.iaq_index}.')
+        print(data)
 
 
 def check_repost_unsent_values(relevant=False):

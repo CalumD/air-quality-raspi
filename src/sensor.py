@@ -6,6 +6,7 @@ import time
 from datetime import datetime
 
 import bme680
+import psutil
 
 _FIRST_TIME_RUN_TIME_MINS = 20
 _CONFIG_FILE_NAME = 'sensor_config.json'
@@ -171,12 +172,20 @@ class Sensor:
             time.sleep(1)
 
         # Capture 'simple' data.
-        self._data.temperature = self.sensor.data.temperature
         self._data.humidity = self.sensor.data.humidity
         self._data.pressure = self.sensor.data.pressure
         self._data.gas = self.sensor.data.gas_resistance
 
+        # Capture current temperature - removing the CPU ambient temp
+        self._data.temperature = self._calculate_temperature()
+
         # Capture Air Quality Score.
+        self._data.iaq_index = self._calculate_iaq_index()
+
+        # Return results to caller.
+        return self._data
+
+    def _calculate_iaq_index(self):
         humidity_offset = self._data.humidity - self.humidity_baseline
         gas_offset = self._data.gas - self.gas_baseline
         if humidity_offset > 0:
@@ -194,10 +203,13 @@ class Sensor:
         else:
             gas_score = 100 - (self.humidity_gas_quality_ratio * 100)
 
-        self._data.iaq_index = hum_score + gas_score
+        return hum_score + gas_score
 
-        # Return results to caller.
-        return self._data
+    def _calculate_temperature(self):
+        print('\n\n')
+        print(psutil.sensors_temperatures())
+        print('\n\n')
+        return self.sensor.data.temperature
 
 
 def _early_quit(reason='An unexpected error occurred and the program had to terminate'):
