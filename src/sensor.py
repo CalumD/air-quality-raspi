@@ -14,6 +14,10 @@ _DEFAULT_SENSOR_CONFIG = {
     "pressure_oversample": bme680.OS_4X,
     "temperature_oversample": bme680.OS_8X,
     "temperature_offset": 0.000,
+    "cpu": {
+        "rounding_factor": 1.0,
+        "smoothing_strength": 10
+    },
     "filter_size": bme680.FILTER_SIZE_7,
     "humidity": {
         "oversample": bme680.OS_2X,
@@ -65,6 +69,8 @@ class Sensor:
         self.humidity_baseline = config['humidity']['baseline']
         self.humidity_gas_quality_ratio = config['humidity']['quality_weighting']
         self.gas_baseline = config['gas']['ambient_background']
+        self.__cpu = config['cpu']
+        self.__cpu['smoothing'] = []
 
     @staticmethod
     def sensor_been_run_before():
@@ -206,10 +212,20 @@ class Sensor:
         return hum_score + gas_score
 
     def _calculate_temperature(self):
-        print('\n\n')
-        print(psutil.sensors_temperatures())
-        print('\n\n')
-        return self.sensor.data.temperature
+        # Get the current cpu temperature and record it
+        current_cpu_temp = psutil.sensors_temperatures()['cpu-thermal'][0][1]
+        self.__cpu['smoothing'].append(current_cpu_temp)
+
+        # Roll the list on to the most recent values.
+        if len(current_cpu_temp) > self.__cpu['smoothing_strength']:
+            self.__cpu['smoothing'] = self.__cpu['smoothing'][1:]
+
+        # Average the list of CPU temps
+        recent_avg = sum(self.__cpu['smoothing']) / float(len(self.__cpu['smoothing']))
+        snapshot = self.sensor.data.temperature
+
+        # Offset the recorded value based on nearby CPU temps.
+        return snapshot - ((recent_avg - snapshot) / self.__cpu['rounding_factor'])
 
 
 def _early_quit(reason='An unexpected error occurred and the program had to terminate'):
