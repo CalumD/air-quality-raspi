@@ -1,47 +1,99 @@
-import sys
-
 from influxdb import InfluxDBClient
+from requests.exceptions import ConnectionError as ReqConnectionError
+
+import utils
+
+DB_TABLE = 'AQ_MON'
+DB_USER = DB_TABLE + '_USER'
+DB_PASS = DB_TABLE + '_PASS_secret'
+_DB_TIMEOUT = 3
 
 
 class DataLogging:
     _local = True
     _hostname = ''
-    _port = 0
+    _port = 8086
     _influx = None
+    _connection_ok = False
 
-    def __init__(self, localhost=True, hostname='', port=0):
-        if hostname.startswith('http://'):
-            hostname = hostname[7:]
-        elif hostname.startswith('https://'):
-            hostname = hostname[8:]
-        self._local = localhost
-        self._hostname = hostname
-        self._port = port
-        if not localhost:
-            print(f'Trying to create a new Logger with properties: \n  host: {self._hostname}\n  port: {self._port}')
-            _local = False
-            self.validate()
+    def __init__(self, hostname='', port=8086):
+        # Check for localhost
+        if hostname != '':
+            # Running remotely:
+            self._local = False
+            # Truncate protocol at start of hostname, if exists.
+            if hostname.startswith('http://'):
+                hostname = hostname[7:]
+            elif hostname.startswith('https://'):
+                hostname = hostname[8:]
+            self._hostname = hostname
+            self._port = port
+
+        # Attempt the connection to see if properties exist, and create them if not.
+        if not self._local:
+            self._init_influx_client()
 
     def _init_influx_client(self):
-        self._influx = InfluxDBClient(host=self._hostname, port=self._port, timeout=3)
-
-    def validate(self):
         try:
-            print('Attempting Connection...')
-            self._init_influx_client()
-            response = self._influx.ping()
-            if response:
-                print('Connection Successful')
+            # Connect to the server
+            print(f'Attempting connection to host \'{self._hostname}:{self._port}\'')
+            self._influx = InfluxDBClient(host=self._hostname, port=self._port, timeout=_DB_TIMEOUT)
+
+            # Check for the user existence
+            user_found = False
+            for user in self._influx.get_list_users():
+                if user['user'] == DB_USER:
+                    user_found = True
+            if not user_found:
+                utils.v_print('Influx user not found, creating...')
+                self._influx.create_user(username=DB_USER, password=DB_PASS)
             else:
-                # TODO implement what to do if the connection was not successful.
-                pass
+                utils.v_print('Identified Influx User...')
+
+            # Check for the database existence
+            db_found = False
+            for db in self._influx.get_list_database():
+                if db['name'] == DB_TABLE:
+                    db_found = True
+            if not db_found:
+                utils.v_print('Influx table not found, creating...')
+                self._influx.create_database(dbname=DB_TABLE)
+            else:
+                utils.v_print('Identified Influx Collection...')
+
+            # Applying database permissions to the user
+            if (not user_found) or (not db_found):
+                self._influx.grant_privilege(privilege='ALL', database=DB_TABLE, username=DB_USER)
+
+            # Check for a retention policy
+            # TODO Implement some sort of retention policy.
+            pass
+
+            # Reset the connection with appropriate user data.
             self._influx.close()
-        except Exception as err:
-            print(str(err), file=sys.stderr)
+            self._influx = InfluxDBClient(host=self._hostname,
+                                          port=self._port,
+                                          username=DB_USER,
+                                          password=DB_PASS,
+                                          database=DB_TABLE,
+                                          timeout=_DB_TIMEOUT)
+            # Update the status of the db connection.
+            if self._influx.ping():
+                self._connection_ok = True
+            else:
+                self._connection_ok = False
+
+        except ReqConnectionError:
+            print('Failed to connect, reverting to local backup until connection can be initialised.')
+            # TODO Validate that the filesystem allows us to write locally.
 
     def log_sensor_output(self, data):
-        # TODO implement the logging
-        print(data)
+        if self._local:
+            print(data)
+        else:
+            # TODO implement persisting the data in the database.
+            check_repost_unsent_values(relevant=self._local)
+            print(data)
 
 
 def check_repost_unsent_values(relevant=False):
