@@ -75,16 +75,9 @@ class DataLogging:
             self._connect()
 
         except ReqConnectionError:
+            self._connection_ok = False
             print('Failed to connect, reverting to local backup until connection can be initialised.')
             utils.validate_can_write_file(_DB_FAILED_WRITES)
-
-    def log_sensor_output(self, data):
-        if self._local:
-            print(data)
-        else:
-            # TODO implement persisting the data in the database.
-            check_repost_unsent_values(relevant=self._local)
-            print(data)
 
     def _connect(self):
         self._influx = InfluxDBClient(host=self._hostname,
@@ -98,14 +91,40 @@ class DataLogging:
             self._connection_ok = True
             print(f'Connection to {self._hostname}:{self._port} successful.')
         else:
-            self._connection_ok = False
             raise ReqConnectionError('Unable to ping the database.')
 
+    def log_sensor_output(self, data):
+        if not self._local:
+            if self._connection_ok:
+                self._write_remote(data)
+            else:
+                self._init_influx_client()
+                if self._connection_ok:
+                    self._check_repost_unsent_values()
+                    self._write_remote(data)
+                else:
+                    self._write_local(data)
+        print(data)
 
-def check_repost_unsent_values(relevant=False):
-    if relevant:
-        print('Check for any locally stored values which weren\'t posted last time.')
-        # TODO implement the rest of this branch
-    else:
-        print('> Skipping the check for local values because we are not persisting them anyway.')
-        # TODO implement the rest of this branch
+    def _check_repost_unsent_values(self):
+        if not utils.validate_file_exists(_DB_FAILED_WRITES):
+            return
+
+        utils.v_print('Had values which were not successfully sent.')
+        # TODO Read in unsent values from file
+
+        # TODO send the batch of unsent values to the server.
+        pass
+
+    def _write_remote(self, data):
+        try:
+            # TODO Send the data to the server
+            pass
+        except Exception:
+            self._influx.close()
+            self._connection_ok = False
+            self._write_local(data)
+
+    def _write_local(self, data):
+        # TODO append data to the end of the unsent data file.
+        pass
