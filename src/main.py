@@ -2,6 +2,7 @@
 import argparse
 import sched
 import signal
+import sys
 
 from data_logging import DataLogging
 from sensor import Sensor
@@ -111,6 +112,11 @@ def work():
 def v_print(content):
     if verbose:
         print(content)
+
+
+def early_quit(reason='An unexpected error occurred and the program had to terminate'):
+    print(f'{reason}', file=sys.stderr)
+    exit(1)
 
 
 def clean_shutdown(sig, frame):

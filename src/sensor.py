@@ -8,6 +8,9 @@ from datetime import datetime
 import bme680
 import psutil
 
+from main import early_quit
+from main import v_print
+
 _FIRST_TIME_RUN_TIME_MINS = 20
 _CONFIG_FILE_NAME = 'sensor_config.json'
 _DEFAULT_SENSOR_CONFIG = {
@@ -79,9 +82,9 @@ class Sensor:
                 if os.access(_CONFIG_FILE_NAME, os.R_OK):
                     return True
                 else:
-                    _early_quit(f'File {_CONFIG_FILE_NAME} was un-readable at runtime, quitting.')
+                    early_quit(f'File {_CONFIG_FILE_NAME} was un-readable at runtime, quitting.')
             else:
-                _early_quit(f'Destination for file, {_CONFIG_FILE_NAME} was marked as a directory, quitting.')
+                early_quit(f'Destination for file, {_CONFIG_FILE_NAME} was marked as a directory, quitting.')
         else:
             return False
 
@@ -89,14 +92,14 @@ class Sensor:
     def validate_can_write_config():
         if os.path.exists(_CONFIG_FILE_NAME):
             if not os.path.isfile(_CONFIG_FILE_NAME):
-                _early_quit(f'Destination for file, {_CONFIG_FILE_NAME} is marked as a directory, quitting.')
+                early_quit(f'Destination for file, {_CONFIG_FILE_NAME} is marked as a directory, quitting.')
         try:
             with open(_CONFIG_FILE_NAME, 'w') as test_file:
                 test_file.write('')
             os.remove(_CONFIG_FILE_NAME)
             return True
-        except Exception as err:
-            _early_quit(f'No write permissions allowed to config file destination, {_CONFIG_FILE_NAME}, quitting.')
+        except Exception:
+            early_quit(f'No write permissions allowed to config file destination, {_CONFIG_FILE_NAME}, quitting.')
 
     @staticmethod
     def get_config_data():
@@ -104,7 +107,7 @@ class Sensor:
             with open(_CONFIG_FILE_NAME, 'r') as json_file:
                 config_data = json.load(json_file)
         except Exception as err:
-            _early_quit(f'Something went wrong trying to get config from {_CONFIG_FILE_NAME}, {str(err)}')
+            early_quit(f'Something went wrong trying to get config from {_CONFIG_FILE_NAME}, {str(err)}')
         return config_data
 
     def first_time_setup(self, config):
@@ -134,8 +137,7 @@ class Sensor:
             if self.sensor.get_sensor_data() and self.sensor.data.heat_stable:
                 ambient_gas_reading = self.sensor.data.gas_resistance
                 burn_in_data.append(ambient_gas_reading)
-                print('Gas: {0} Ohms'.format(ambient_gas_reading),
-                      file=sys.stderr)  # TODO: REMOVE THIS LINE ONCE TESTING IS COMPLETE.
+                v_print('Gas: {0} Ohms'.format(ambient_gas_reading))
                 # Rest for a second to save pounding the sensor / CPU unnecessarily.
                 time.sleep(1)
 
@@ -227,8 +229,3 @@ class Sensor:
 
         # Offset the recorded value based on nearby CPU temps.
         return snapshot - ((recent_avg - snapshot) / self.__cpu['rounding_factor'])
-
-
-def _early_quit(reason='An unexpected error occurred and the program had to terminate'):
-    print(f'{reason}', file=sys.stderr)
-    exit(1)
