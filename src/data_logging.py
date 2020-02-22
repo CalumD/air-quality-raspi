@@ -36,6 +36,7 @@ class DataLogging:
 
     def _init_influx_client(self):
         try:
+            utils.validate_can_write_file(_DB_FAILED_WRITES)
             # Connect to the server
             print(f'Attempting connection to host \'{self._hostname}:{self._port}\'')
             self._influx = InfluxDBClient(host=self._hostname, port=self._port, timeout=_DB_TIMEOUT)
@@ -77,7 +78,6 @@ class DataLogging:
         except ReqConnectionError:
             self._connection_ok = False
             print('Failed to connect, reverting to local backup until connection can be initialised.')
-            utils.validate_can_write_file(_DB_FAILED_WRITES)
 
     def _connect(self):
         self._influx = InfluxDBClient(host=self._hostname,
