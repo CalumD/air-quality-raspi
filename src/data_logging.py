@@ -1,3 +1,6 @@
+import os
+import pickle
+
 from influxdb import InfluxDBClient
 from requests.exceptions import ConnectionError as ReqConnectionError
 
@@ -93,7 +96,7 @@ class DataLogging:
         else:
             raise ReqConnectionError('Unable to ping the database.')
 
-    def log_sensor_output(self, data):
+    def log_sensor_output(self, data: utils.DataCapture):
         if not self._local:
             if self._connection_ok:
                 self._write_remote(data)
@@ -109,22 +112,40 @@ class DataLogging:
     def _check_repost_unsent_values(self):
         if not utils.validate_file_exists(_DB_FAILED_WRITES):
             return
-
         utils.v_print('Had values which were not successfully sent.')
-        # TODO Read in unsent values from file
+        for data in self._load_locals():
+            if self._connection_ok:
+                self._write_remote(data)
+            else:
+                self._write_local(data)
 
-        # TODO send the batch of unsent values to the server.
-        pass
-
-    def _write_remote(self, data):
+    def _write_remote(self, data: utils.DataCapture):
         try:
-            # TODO Send the data to the server
+            # TODO Write the influx post data in the line below
+            # self._influx.write()
             pass
         except Exception:
             self._influx.close()
             self._connection_ok = False
             self._write_local(data)
 
-    def _write_local(self, data):
-        # TODO append data to the end of the unsent data file.
-        pass
+    def _write_local(self, data: utils.DataCapture):
+        self._write_locals([data])
+
+    @staticmethod
+    def _write_locals(data: [utils.DataCapture]):
+        with open(_DB_FAILED_WRITES, 'a') as db_backups:
+            for val in data:
+                pickle.dump(val, db_backups)
+
+    @staticmethod
+    def _load_locals() -> [utils.DataCapture]:
+        backups = []
+        with open(_DB_FAILED_WRITES, 'r') as db_backups:
+            while True:
+                try:
+                    backups.append(pickle.load(db_backups))
+                except EOFError:
+                    break
+        os.remove(_DB_FAILED_WRITES)
+        return backups
