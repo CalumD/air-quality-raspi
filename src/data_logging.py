@@ -150,14 +150,14 @@ class DataLogging:
 
     @staticmethod
     def _write_locals(data: [utils.DataCapture]):
-        with open(_DB_FAILED_WRITES, 'a') as db_backups:
+        with open(_DB_FAILED_WRITES, 'ab') as db_backups:
             for val in data:
                 pickle.dump(val, db_backups)
 
     @staticmethod
     def _load_locals() -> [utils.DataCapture]:
         backups = []
-        with open(_DB_FAILED_WRITES, 'r') as db_backups:
+        with open(_DB_FAILED_WRITES, 'rb') as db_backups:
             while True:
                 try:
                     backups.append(pickle.load(db_backups))
