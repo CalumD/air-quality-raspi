@@ -34,26 +34,6 @@ _DEFAULT_SENSOR_CONFIG = {
 }
 
 
-class DataCapture:
-    timestamp = time.time()
-
-    def __init__(self, temperature=0.0, humidity=0.0, pressure=0.0, gas=0.0, iaq_index=0.0):
-        self.temperature = temperature
-        self.humidity = humidity
-        self.pressure = pressure
-        self.gas = gas
-        self.iaq_index = iaq_index
-
-    def tick(self):
-        self.timestamp = time.time()
-
-    def __str__(self):
-        return '{0}: ' 'Temp {1:.2f}°C, Humidity {2:.2f} %RH, Pressure {3:.2f} hPa, ' \
-               'Gas Resistance {4:.2f} Ohms, Quality Index: {5:.2f}'.format(
-            datetime.fromtimestamp(self.timestamp).strftime('%d/%m/%Y %T.%f')[:-3],
-            self.temperature, self.humidity, self.pressure, self.gas, self.iaq_index)
-
-
 class Sensor:
     def __init__(self):
         # Configure
@@ -66,7 +46,7 @@ class Sensor:
         self._configure_sensor(config)
 
         # Populate properties based on config
-        self._data = DataCapture()
+        self._data = utils.DataCapture()
         self.humidity_baseline = config['humidity']['baseline']
         self.humidity_gas_quality_ratio = config['humidity']['quality_weighting']
         self.gas_baseline = config['gas']['ambient_background']
