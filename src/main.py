@@ -2,8 +2,8 @@
 import argparse
 import sched
 import signal
-import sys
 
+import utils
 from data_logging import DataLogging
 from sensor import Sensor
 
@@ -77,9 +77,9 @@ def validate_commandline_args(parsed_arguments):
     # Validate the database connection
     global logger
     if parsed_arguments.save:
-        logger = DataLogging(localhost=False, hostname=parsed_arguments.database, port=parsed_arguments.port)
+        logger = DataLogging(hostname=parsed_arguments.database, port=parsed_arguments.port)
     else:
-        logger = DataLogging(localhost=True)
+        logger = DataLogging()
 
     # Everything was successfully validated so respond True.
     return True
@@ -89,7 +89,7 @@ def execute(freq):
     # Calculate the work delay based on the polling frequency
     one_hour = 3600
     polling_frequency = one_hour // freq  # Floor division to get the nearest int.
-    v_print(f'Calculated Polling to run every {polling_frequency} seconds')
+    utils.v_print(f'Calculated Polling to run every {polling_frequency} seconds')
 
     # Do a 'Run-Once'
     work()
@@ -109,37 +109,21 @@ def work():
     logger.log_sensor_output(data=sensor_output)
 
 
-def v_print(content):
-    if verbose:
-        print(content)
-
-
-def early_quit(reason='An unexpected error occurred and the program had to terminate'):
-    print(f'{reason}', file=sys.stderr)
-    exit(1)
-
-
-def clean_shutdown(sig, frame):
-    # TODO implement some clean shutdown logic if we are using a remote connection or are writing to file.
-    print('You pressed Ctrl+C!')
-    exit(0)
-
-
-signal.signal(signal.SIGINT, clean_shutdown)
-signal.signal(signal.SIGTERM, clean_shutdown)
+signal.signal(signal.SIGINT, utils.clean_shutdown)
+signal.signal(signal.SIGTERM, utils.clean_shutdown)
 if __name__ == '__main__':
     print('Checking command line arguments...')
     parsed_args = get_commandline_args()
-    v_print('> Got command line arguments successfully.\n')
+    utils.v_print('> Got command line arguments successfully.\n')
 
-    v_print('Validating command line arguments...')
+    utils.v_print('Validating command line arguments...')
     if not validate_commandline_args(parsed_args):
         exit(1)
-    v_print('> Validated the command line arguments are okay.\n')
+    utils.v_print('> Validated the command line arguments are okay.\n')
 
-    v_print('Setup Sensor...')
+    utils.v_print('Setup Sensor...')
     sensor = Sensor()
-    v_print('> Sensor Initialised.\n')
+    utils.v_print('> Sensor Initialised.\n')
 
     print('-- Operational --')
     execute(parsed_args.freq)
