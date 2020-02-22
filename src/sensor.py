@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 import json
-import os.path
 import sys
 import time
 from datetime import datetime
@@ -58,10 +57,10 @@ class DataCapture:
 class Sensor:
     def __init__(self):
         # Configure
-        if self.sensor_been_run_before():
-            config = self.get_config_data()
+        if utils.validate_file_exists(_CONFIG_FILE_NAME):
+            config = utils.get_json_from_file(_CONFIG_FILE_NAME)
         else:
-            self.validate_can_write_config()
+            utils.validate_can_write_file(_CONFIG_FILE_NAME)
             self._configure_sensor(_DEFAULT_SENSOR_CONFIG)
             config = self.first_time_setup(_DEFAULT_SENSOR_CONFIG)
         self._configure_sensor(config)
@@ -73,41 +72,6 @@ class Sensor:
         self.gas_baseline = config['gas']['ambient_background']
         self.__cpu = config['cpu']
         self.__cpu['smoothing'] = []
-
-    @staticmethod
-    def sensor_been_run_before():
-        if os.path.exists(_CONFIG_FILE_NAME):
-            if os.path.isfile(_CONFIG_FILE_NAME):
-                if os.access(_CONFIG_FILE_NAME, os.R_OK):
-                    return True
-                else:
-                    utils.early_quit(f'File {_CONFIG_FILE_NAME} was un-readable at runtime, quitting.')
-            else:
-                utils.early_quit(f'Destination for file, {_CONFIG_FILE_NAME} was marked as a directory, quitting.')
-        else:
-            return False
-
-    @staticmethod
-    def validate_can_write_config():
-        if os.path.exists(_CONFIG_FILE_NAME):
-            if not os.path.isfile(_CONFIG_FILE_NAME):
-                utils.early_quit(f'Destination for file, {_CONFIG_FILE_NAME} is marked as a directory, quitting.')
-        try:
-            with open(_CONFIG_FILE_NAME, 'w') as test_file:
-                test_file.write('')
-            os.remove(_CONFIG_FILE_NAME)
-            return True
-        except Exception:
-            utils.early_quit(f'No write permissions allowed to config file destination, {_CONFIG_FILE_NAME}, quitting.')
-
-    @staticmethod
-    def get_config_data():
-        try:
-            with open(_CONFIG_FILE_NAME, 'r') as json_file:
-                config_data = json.load(json_file)
-        except Exception as err:
-            utils.early_quit(f'Something went wrong trying to get config from {_CONFIG_FILE_NAME}, {str(err)}')
-        return config_data
 
     def first_time_setup(self, config):
         # Define burn-in variables
@@ -151,7 +115,7 @@ class Sensor:
             json.dump(config, indent=4, fp=json_file)
 
         # return new data.
-        return self.get_config_data()
+        return utils.get_json_from_file(_CONFIG_FILE_NAME)
 
     def _configure_sensor(self, config):
         # Set necessities

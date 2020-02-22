@@ -7,7 +7,6 @@ import utils
 from data_logging import DataLogging
 from sensor import Sensor
 
-verbose = False
 logger = DataLogging()
 sensor = Sensor
 
@@ -58,8 +57,7 @@ def get_commandline_args():
                                  default=60)  # Once per minute
 
     parsed_arguments = argument_parser.parse_args()
-    global verbose
-    verbose = parsed_arguments.verbose
+    utils.verbose = parsed_arguments.verbose
     return parsed_arguments
 
 

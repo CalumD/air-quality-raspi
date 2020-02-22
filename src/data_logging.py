@@ -3,6 +3,7 @@ from requests.exceptions import ConnectionError as ReqConnectionError
 
 import utils
 
+_DB_FAILED_WRITES = 'failed_db_writes.dbp'
 DB_TABLE = 'AQ_MON'
 DB_USER = DB_TABLE + '_USER'
 DB_PASS = DB_TABLE + '_PASS_secret'
@@ -71,21 +72,11 @@ class DataLogging:
 
             # Reset the connection with appropriate user data.
             self._influx.close()
-            self._influx = InfluxDBClient(host=self._hostname,
-                                          port=self._port,
-                                          username=DB_USER,
-                                          password=DB_PASS,
-                                          database=DB_TABLE,
-                                          timeout=_DB_TIMEOUT)
-            # Update the status of the db connection.
-            if self._influx.ping():
-                self._connection_ok = True
-            else:
-                self._connection_ok = False
+            self._connect()
 
         except ReqConnectionError:
             print('Failed to connect, reverting to local backup until connection can be initialised.')
-            # TODO Validate that the filesystem allows us to write locally.
+            utils.validate_can_write_file(_DB_FAILED_WRITES)
 
     def log_sensor_output(self, data):
         if self._local:
@@ -94,6 +85,21 @@ class DataLogging:
             # TODO implement persisting the data in the database.
             check_repost_unsent_values(relevant=self._local)
             print(data)
+
+    def _connect(self):
+        self._influx = InfluxDBClient(host=self._hostname,
+                                      port=self._port,
+                                      username=DB_USER,
+                                      password=DB_PASS,
+                                      database=DB_TABLE,
+                                      timeout=_DB_TIMEOUT)
+        # Update the status of the db connection.
+        if self._influx.ping():
+            self._connection_ok = True
+            print(f'Connection to {self._hostname}:{self._port} successful.')
+        else:
+            self._connection_ok = False
+            raise ReqConnectionError('Unable to ping the database.')
 
 
 def check_repost_unsent_values(relevant=False):
