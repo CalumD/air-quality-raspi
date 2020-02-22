@@ -1,5 +1,6 @@
 import os
 import pickle
+import uuid
 
 from influxdb import InfluxDBClient
 from requests.exceptions import ConnectionError as ReqConnectionError
@@ -11,6 +12,8 @@ DB_TABLE = 'AQ_MON'
 DB_USER = DB_TABLE + '_USER'
 DB_PASS = DB_TABLE + '_PASS_secret'
 _DB_TIMEOUT = 3
+_PROG_RUN_ID = uuid.uuid4()
+_HOST_NAME = utils.HOST_NAME
 
 
 class DataLogging:

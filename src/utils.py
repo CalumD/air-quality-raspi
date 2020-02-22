@@ -3,8 +3,10 @@ import os.path
 import sys
 import time
 from datetime import datetime
+from socket import gethostname
 
 verbose = True
+HOST_NAME = gethostname()
 
 
 def v_print(content):
