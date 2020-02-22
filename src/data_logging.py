@@ -1,6 +1,7 @@
 import os
 import pickle
 import uuid
+from datetime import datetime
 
 from influxdb import InfluxDBClient
 from requests.exceptions import ConnectionError as ReqConnectionError
@@ -124,9 +125,21 @@ class DataLogging:
 
     def _write_remote(self, data: utils.DataCapture):
         try:
-            # TODO Write the influx post data in the line below
-            # self._influx.write()
-            pass
+            self._influx.write({
+                "measurement": "AQ",
+                "tags": {
+                    "runID": _PROG_RUN_ID,
+                    "hostname": _HOST_NAME
+                },
+                "time": f'{datetime.fromtimestamp(data.timestamp).strftime("%Y-%m-%dT%T.%f")[:-3]}Z',
+                "fields": {
+                    "temperature": data.temperature,
+                    "humidity": data.humidity,
+                    "pressure": data.pressure,
+                    "gas": data.gas,
+                    "quality": data.iaq_index
+                }
+            })
         except Exception:
             self._influx.close()
             self._connection_ok = False
