@@ -107,8 +107,13 @@ def work():
     logger.log_sensor_output(data=sensor_output)
 
 
-signal.signal(signal.SIGINT, utils.clean_shutdown)
-signal.signal(signal.SIGTERM, utils.clean_shutdown)
+def clean_shutdown(sig, frame):
+    logger.shutdown()
+    exit(0)
+
+
+signal.signal(signal.SIGINT, clean_shutdown)
+signal.signal(signal.SIGTERM, clean_shutdown)
 if __name__ == '__main__':
     print('Checking command line arguments...')
     parsed_args = get_commandline_args()

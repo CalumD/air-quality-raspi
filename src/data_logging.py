@@ -172,3 +172,8 @@ class DataLogging:
                 except EOFError:
                     break
         return backups
+
+    def shutdown(self):
+        if not self._local:
+            if self._connection_ok:
+                self._influx.close()

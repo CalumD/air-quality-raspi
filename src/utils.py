@@ -19,12 +19,6 @@ def early_quit(reason='An unexpected error occurred and the program had to termi
     exit(1)
 
 
-def clean_shutdown(sig, frame):
-    # TODO implement some clean shutdown logic if we are using a remote connection or are writing to file.
-    print('You pressed Ctrl+C!')
-    exit(0)
-
-
 def validate_can_write_file(path, should_del_after=False):
     if os.path.exists(path):
         if not os.path.isfile(path):
