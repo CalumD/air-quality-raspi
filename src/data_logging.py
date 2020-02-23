@@ -117,12 +117,16 @@ class DataLogging:
         if not utils.validate_file_exists(_DB_FAILED_WRITES):
             return
         utils.v_print('Had values which were not successfully sent.')
+        all_sent_ok = True
         for data in self._load_locals():
             if self._connection_ok:
                 utils.v_print(f"ReSending dropped data: {data}")
                 self._write_remote(data)
             else:
+                all_sent_ok = False
                 self._write_local(data)
+        if all_sent_ok:
+            os.remove(_DB_FAILED_WRITES)
 
     def _write_remote(self, data: utils.DataCapture):
         try:
@@ -167,5 +171,4 @@ class DataLogging:
                     backups.append(pickle.load(db_backups))
                 except EOFError:
                     break
-        os.remove(_DB_FAILED_WRITES)
         return backups
