@@ -30,7 +30,7 @@ def validate_can_write_file(path, should_del_after=False):
         if not os.path.isfile(path):
             early_quit(f'Destination for file, {path} is marked as a directory, quitting.')
     try:
-        with open(path, 'w') as test_file:
+        with open(path, 'a') as test_file:
             test_file.write('')
         if should_del_after:
             os.remove(path)
