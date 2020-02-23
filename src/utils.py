@@ -25,14 +25,15 @@ def clean_shutdown(sig, frame):
     exit(0)
 
 
-def validate_can_write_file(path):
+def validate_can_write_file(path, should_del_after=False):
     if os.path.exists(path):
         if not os.path.isfile(path):
             early_quit(f'Destination for file, {path} is marked as a directory, quitting.')
     try:
         with open(path, 'w') as test_file:
             test_file.write('')
-        os.remove(path)
+        if should_del_after:
+            os.remove(path)
         return True
     except Exception:
         early_quit(f'No write permissions allowed to config file destination, {path}, quitting.')

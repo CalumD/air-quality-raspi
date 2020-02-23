@@ -119,6 +119,7 @@ class DataLogging:
         utils.v_print('Had values which were not successfully sent.')
         for data in self._load_locals():
             if self._connection_ok:
+                utils.v_print(f"ReSending dropped data: {data}")
                 self._write_remote(data)
             else:
                 self._write_local(data)

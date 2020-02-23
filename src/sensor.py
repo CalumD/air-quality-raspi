@@ -40,7 +40,7 @@ class Sensor:
         if utils.validate_file_exists(_CONFIG_FILE_NAME):
             config = utils.get_json_from_file(_CONFIG_FILE_NAME)
         else:
-            utils.validate_can_write_file(_CONFIG_FILE_NAME)
+            utils.validate_can_write_file(_CONFIG_FILE_NAME, should_del_after=True)
             self._configure_sensor(_DEFAULT_SENSOR_CONFIG)
             config = self.first_time_setup(_DEFAULT_SENSOR_CONFIG)
         self._configure_sensor(config)
