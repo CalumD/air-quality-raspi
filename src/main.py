@@ -87,7 +87,7 @@ def execute(freq):
     # Calculate the work delay based on the polling frequency
     one_hour = 3600
     polling_frequency = one_hour // freq  # Floor division to get the nearest int.
-    utils.v_print(f'Calculated Polling to run every {polling_frequency} seconds')
+    print(f'Calculated Polling to run every {polling_frequency} seconds')
 
     # Do a 'Run-Once'
     work()
