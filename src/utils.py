@@ -23,6 +23,9 @@ def validate_can_write_file(path, should_del_after=False):
     if os.path.exists(path):
         if not os.path.isfile(path):
             early_quit(f'Destination for file, {path} is marked as a directory, quitting.')
+        if not os.access(path, os.W_OK):
+            early_quit(f'No write permissions given for path, {path}, quitting.')
+        return True
     try:
         with open(path, 'a') as test_file:
             test_file.write('')
