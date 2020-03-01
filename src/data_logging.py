@@ -97,6 +97,7 @@ class DataLogging:
         if self._influx.ping():
             self._connection_ok = True
             print(f'Connection to {self._hostname}:{self._port} successful.')
+            self._check_repost_unsent_values()
         else:
             raise ReqConnectionError('Unable to ping the database.')
 
@@ -126,6 +127,7 @@ class DataLogging:
                 all_sent_ok = False
                 self._write_local(data)
         if all_sent_ok:
+            print('Successfully pushed, all previously failed db writes, to server.')
             os.remove(_DB_FAILED_WRITES)
 
     def _write_remote(self, data: utils.DataCapture):
