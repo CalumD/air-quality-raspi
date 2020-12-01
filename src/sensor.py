@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
+import bme680
 import json
+import psutil
 import sys
 import time
 from datetime import datetime
-
-import bme680
-import psutil
 
 import utils
 
@@ -158,7 +157,7 @@ class Sensor:
 
     def _calculate_temperature(self):
         # Get the current cpu temperature and record it
-        current_cpu_temp = psutil.sensors_temperatures()['cpu-thermal'][0][1]
+        current_cpu_temp = psutil.sensors_temperatures()['cpu_thermal'][0][1]
         self.__cpu['smoothing'].append(current_cpu_temp)
         smoothing = self.__cpu['smoothing']
 
